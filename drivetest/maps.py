@@ -10,9 +10,10 @@ import pandas as pd
 
 from .clean import downloading
 from .kpi import RSRP_LEGEND, THROUGHPUT_LEGEND, legend_class
+from .style import TECH_COLOURS
+from .tuning import cell_name
 
 METRES_PER_DEGREE = 111_320          # one degree of latitude, in metres
-TECH_COLOURS = {"5G": "#2a78d6", "LTE": "#eb6834", "3G": "#1baf7a"}
 
 
 def add_bin(table, size_m=100, reference_lat=51.9):
@@ -69,12 +70,19 @@ def weak_spots(bins, min_drives=2, poor_rsrp=-100, good_rsrp=-90, low_mbps=2):
     return pd.concat([coverage, quality], ignore_index=True)
 
 
-def interactive_map(bins, events, spots, path):
-    """Write an interactive HTML map (open it in a browser) with four layers."""
+def build_map(bins, events, spots, wheel_zoom=True):
+    """Build the interactive map with six layers. Returns a folium Map.
+
+    `events` must come from handover.mark_ping_pong (it needs `ping_pong_out`).
+    Set `wheel_zoom=False` for a map inside a page: the mouse wheel then
+    scrolls the page instead of zooming the map.
+    """
     import folium     # imported here so the rest of the project works without folium
 
     centre = [bins["bin_lat"].mean(), bins["bin_lon"].mean()]
-    web_map = folium.Map(location=centre, zoom_start=13, tiles="OpenStreetMap")
+    web_map = folium.Map(location=centre, zoom_start=13, tiles="OpenStreetMap", scrollWheelZoom=wheel_zoom)
+    # zoom so that the whole route is visible
+    web_map.fit_bounds([[bins["bin_lat"].min(), bins["bin_lon"].min()], [bins["bin_lat"].max(), bins["bin_lon"].max()]])
 
     def dot_layer(name, colours, texts, show):
         layer = folium.FeatureGroup(name=name, show=show)
@@ -99,6 +107,14 @@ def interactive_map(bins, events, spots, path):
                             fill_color="#ffffff", fill_opacity=1, tooltip=text).add_to(changes)
     changes.add_to(web_map)
 
+    round_trips = folium.FeatureGroup(name="Ping-pong round trips", show=False)
+    for event in events[events["ping_pong_out"]].dropna(subset=["lat", "lon"]).itertuples():
+        text = (f"Ping-pong: {cell_name(event.from_cell, event.from_tech)} to "
+                f"{cell_name(event.to_cell, event.to_tech)} and back")
+        folium.CircleMarker([event.lat, event.lon], radius=4, stroke=False, fill=True,
+                            fill_color="#0b0b0b", fill_opacity=1, tooltip=text).add_to(round_trips)
+    round_trips.add_to(web_map)
+
     problems = folium.FeatureGroup(name="Weak spots", show=True)
     for spot in spots.itertuples():
         text = f"{spot.problem}: RSRP {spot.rsrp:.0f} dBm, {spot.dl_mbps:.1f} Mbps, {spot.rsrp_drives} drives"
@@ -108,7 +124,12 @@ def interactive_map(bins, events, spots, path):
 
     folium.LayerControl(collapsed=False).add_to(web_map)
     web_map.get_root().html.add_child(folium.Element(_legend_html()))
-    web_map.save(str(path))
+    return web_map
+
+
+def interactive_map(bins, events, spots, path):
+    """Write the interactive map to an HTML file (open it in a browser)."""
+    build_map(bins, events, spots).save(str(path))
     return path
 
 
@@ -126,5 +147,6 @@ def _legend_html():
         'font:12px system-ui,sans-serif;color:#0b0b0b;line-height:1.5">'
         f'<b>RSRP</b>{rows(RSRP_LEGEND)}'
         f'<div style="margin-top:6px"><b>Throughput</b></div>{rows(THROUGHPUT_LEGEND)}'
-        '<div style="margin-top:6px">Black ring = weak spot</div></div>'
+        '<div style="margin-top:6px">Black ring = weak spot<br>White dot = cell change<br>'
+        'Black dot = ping-pong round trip</div></div>'
     )

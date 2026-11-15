@@ -10,15 +10,7 @@ from matplotlib.ticker import MaxNLocator
 from . import handover, kpi
 from .clean import downloading
 from .kpi import RSRP_LEGEND, THROUGHPUT_LEGEND, legend_class
-from .maps import TECH_COLOURS
-
-SURFACE = "#fcfcfb"      # figure background
-INK = "#0b0b0b"          # titles
-INK_SOFT = "#52514e"     # axis labels, notes
-MUTED = "#898781"        # tick labels
-GRID = "#e1e0d9"
-AXIS = "#c3c2b7"
-MODEL_COLOURS = {"Linear regression": "#2a78d6", "Gradient boosting": "#eb6834", "Neural network": "#1baf7a"}
+from .style import AXIS, GRID, INK, INK_SOFT, MODEL_COLOURS, MUTED, RULE_COLOURS, SURFACE, TECH_COLOURS
 
 plt.rcParams.update({
     "figure.facecolor": SURFACE, "axes.facecolor": SURFACE, "savefig.facecolor": SURFACE,
@@ -182,6 +174,56 @@ def change_profile_by_kind(df, events, window=10):
     _headline(fig, "Throughput around the change, by kind of change",
               "Isolated changes only. The clear, lasting effects are the moves between 5G cells and LTE cells.")
     fig.tight_layout(rect=(0, 0, 1, 0.9))
+    return fig
+
+
+def ping_pong_rules(rules, borders, top=10):
+    """Left: how well each rule separates ping-pong from normal changes.
+    Right: the borders with the most round trips."""
+    fig, (left, right) = plt.subplots(1, 2, figsize=(11.5, 5.2), gridspec_kw={"width_ratios": [1, 1.15]})
+
+    left.plot([0, 100], [0, 100], color=AXIS, linewidth=1, linestyle="--")
+    left.text(66, 62, "a rule that cannot tell them apart", rotation=45, rotation_mode="anchor",
+              ha="center", va="top", fontsize=8.5, color=MUTED)
+    for rule in ["Border", "Margin"]:
+        part = rules[rules["rule"] == rule]
+        x, y = part["normal_changes_affected_pct"], part["round_trips_caught_pct"]
+        left.plot(x, y, marker="o", markersize=6, color=RULE_COLOURS[rule], label=f"{rule} rule")
+        for setting, px, py in zip(part["setting"], x, y):
+            # "5+ round trips in other drives" -> "5+",  "gain below 3 dB" -> "3 dB"
+            short = setting.split(" round")[0] if rule == "Border" else setting.replace("gain below ", "")
+            if rule == "Margin" and short not in ("0 dB", "3 dB", "8 dB"):
+                continue                               # label a few points only, the rest follow the line
+            offset = (-8, -4) if short == "0 dB" else (-7, 5)
+            left.annotate(short, (px, py), xytext=offset, textcoords="offset points", ha="right",
+                          fontsize=8.5, color=INK_SOFT)
+    road = rules[rules["rule"] == "Road only"].iloc[0]
+    left.plot(road["normal_changes_affected_pct"], road["round_trips_caught_pct"], marker="D", markersize=6,
+              linestyle="none", color=MUTED, label="Road only (control)")
+    left.set_xlim(0, 100)
+    left.set_ylim(0, 100)
+    left.set_aspect("equal")
+    left.set_xlabel("Normal changes the rule also acts on (%)")
+    left.set_ylabel("Ping-pong round trips the rule acts on (%)")
+    left.set_title("Up and to the left is better")
+    left.legend(loc="upper left")
+
+    worst = borders.head(top).iloc[::-1]               # biggest at the top of the chart
+    right.barh(worst.index, worst["round_trips"], height=0.55, color=RULE_COLOURS["Border"])
+    for row, (round_trips, drives) in enumerate(zip(worst["round_trips"], worst["drives_with_round_trip"])):
+        right.text(round_trips + 0.3, row, f"in {drives} drive{'s' if drives != 1 else ''}", va="center",
+                   fontsize=8.5, color=INK_SOFT)
+    right.set_xlim(0, worst["round_trips"].max() * 1.22)
+    right.xaxis.set_major_locator(MaxNLocator(integer=True))
+    right.set_xlabel("Ping-pong round trips (all drives)")
+    right.set_title(f"The {top} borders with the most round trips (site-cell | site-cell)")
+    right.grid(axis="y", visible=False)
+    right.tick_params(axis="y", labelsize=8.5)
+    _headline(fig, "What separates a ping-pong from a normal cell change?",
+              "Border rule: act at borders with N+ round trips in the other drives.  "
+              "Margin rule: act when the RSRP gain is below N dB.\n"
+              "Road only: act at every border that another drive also crossed (it knows the road, not the ping-pong).")
+    fig.tight_layout(rect=(0, 0, 1, 0.87))
     return fig
 
 
