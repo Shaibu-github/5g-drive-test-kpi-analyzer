@@ -1,0 +1,13 @@
+features,model,r2_log,mae_mbps,worst_fold_r2,best_fold_r2
+Technology only,Linear regression,0.179,25.449,-0.36,0.237
+Technology only,Gradient boosting,0.191,25.383,-0.368,0.263
+Technology only,Neural network,0.19,25.385,-0.365,0.253
+Radio KPIs,Linear regression,0.237,24.915,-0.437,0.371
+Radio KPIs,Gradient boosting,0.23,24.873,-0.632,0.397
+Radio KPIs,Neural network,0.22,25.177,-0.658,0.385
+Radio KPIs + location,Linear regression,0.353,22.676,-0.049,0.457
+Radio KPIs + location,Gradient boosting,0.409,21.733,0.117,0.497
+Radio KPIs + location,Neural network,0.349,23.509,0.084,0.465
+Radio KPIs + location + history,Linear regression,0.532,21.537,0.28,0.614
+Radio KPIs + location + history,Gradient boosting,0.628,17.658,0.492,0.7
+Radio KPIs + location + history,Neural network,0.602,18.804,0.41,0.644

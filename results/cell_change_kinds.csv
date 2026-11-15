@@ -1,0 +1,11 @@
+kind,changes,ping_pong_pct,median_stay_s,median_rsrp_before,median_rsrp_gain_db
+5G inter-site,234,42.7,8.5,-86.0,1.0
+5G to LTE,135,35.6,7.0,-89.0,0.0
+LTE to 5G,131,38.9,17.0,-91.0,2.0
+LTE inter-site,91,42.9,13.0,-97.0,2.0
+5G intra-site,80,25.0,32.0,-76.0,1.0
+LTE intra-site,35,11.4,33.0,-80.0,4.0
+3G cell change,15,0.0,28.0,-87.0,0.0
+LTE to 3G,6,0.0,2.5,-115.5,
+3G to LTE,3,0.0,288.0,-59.0,
+5G to 3G,3,0.0,31.0,-91.0,

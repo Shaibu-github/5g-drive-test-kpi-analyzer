@@ -1,0 +1,8 @@
+column,missing_in_raw,blanked_by_cleaning,valid_after_cleaning,valid_pct
+rsrp,0,3,27588,100.0
+rsrq,3402,1183,23006,83.4
+snr,4428,3,23160,83.9
+cqi,4429,0,23162,83.9
+rssi,5038,0,22553,81.7
+nbr_rsrp,4047,3837,19707,71.4
+nbr_rsrq,6711,2291,18589,67.4

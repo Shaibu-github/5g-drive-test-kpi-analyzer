@@ -1,0 +1,48 @@
+{
+  "overview": {
+    "drives": 16,
+    "samples": 27591,
+    "hours": 7.9,
+    "route_km": 168.4,
+    "cells": 111,
+    "sites": 51,
+    "rows_with_identity_mismatch": 191,
+    "first_day": "2019-12-14",
+    "last_day": "2020-02-27"
+  },
+  "tech_share_pct": {
+    "5G": 50.6,
+    "LTE": 33.4,
+    "3G": 16.0
+  },
+  "uplink_rank_correlation_with_downlink": {
+    "5G": 0.78,
+    "LTE": 0.86
+  },
+  "cell_changes": {
+    "total": 733,
+    "per_minute": 1.54,
+    "per_km": 4.35,
+    "ping_pong_round_trips": 148,
+    "changes_in_a_round_trip": 262,
+    "changes_in_a_round_trip_pct": 35.7,
+    "changes_next_to_identity_mismatch": 8,
+    "isolated": 222,
+    "isolated_used_for_dip": 201,
+    "median_drop_pct": 30.8,
+    "control_median_drop_pct": -4.5
+  },
+  "maps": {
+    "road_bins": 432,
+    "weak_spots": {
+      "Weak coverage": 41,
+      "Low throughput with good coverage": 2
+    }
+  },
+  "model": {
+    "windows": 2400,
+    "drives_with_windows": 15,
+    "r2_radio_kpis_drive_split": 0.23,
+    "r2_radio_kpis_random_split": 0.457
+  }
+}
