@@ -46,6 +46,13 @@ def test_unknown_network_mode_stops_the_cleaning(make_raw):
         clean(make_raw([{}, {"NetworkMode": "EDGE"}]))
 
 
+def test_a_row_without_mode_or_site_is_kept_and_flagged(make_raw):
+    df = clean(make_raw([{}, {"NetworkMode": None, "NODEHEX": None, "RAWCELLID": None}]))
+    assert len(df) == 2                                                   # rows are never deleted
+    assert pd.isna(df.loc[1, "tech"])
+    assert df["identity_ok"].tolist() == [True, False]
+
+
 def test_identity_check_flags_a_cell_id_that_does_not_fit_the_technology(make_raw):
     lte_cell = {"NODEHEX": "A1", "CellID": 1, "RAWCELLID": 161 * 256 + 1}
     cell_3g = {"NetworkMode": "HSPA+", "NODEHEX": "C", "CellID": 500, "RAWCELLID": 12 * 65536 + 500}

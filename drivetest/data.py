@@ -55,8 +55,9 @@ def load_log(path):
     hex_columns = {"NODEHEX": str, "CELLHEX": str, "LACHEX": str}
     log = pd.read_csv(path, na_values="-", dtype=hex_columns)
     # File name: B_2019.12.14_10.16.30.csv -> operator "B" + start time of the drive.
-    # The start time is a natural ID for the drive.
-    log["drive"] = Path(path).stem.split("_", 1)[1]
+    # The start time is a natural ID for the drive. A file name without "_"
+    # (your own log, for example) is used as it is.
+    log["drive"] = Path(path).stem.split("_", 1)[-1]
     return log
 
 

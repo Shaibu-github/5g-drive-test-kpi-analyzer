@@ -74,6 +74,9 @@ def haversine_m(lat1, lon1, lat2, lon2):
 
 def clean(raw, max_first_jump_m=300):
     """Return the clean table. `raw` is the output of data.load_logs()."""
+    missing = [name for name in RENAME if name not in raw.columns]
+    if missing:
+        raise ValueError(f"The log has no column {missing}. This tool reads G-NetTrack Pro log files.")
     df = raw.rename(columns=RENAME).reset_index(drop=True)
 
     # --- 1. time ---------------------------------------------------------
@@ -87,11 +90,12 @@ def clean(raw, max_first_jump_m=300):
     df["elapsed_s"] = (df["time"] - drive_start).dt.total_seconds()
 
     # --- 2. technology ---------------------------------------------------
-    unknown_modes = set(df["network_mode"]) - set(TECH)
+    unknown_modes = set(df["network_mode"].dropna()) - set(TECH)
     if unknown_modes:
         # stop early: an unmapped mode would silently become a missing technology
-        raise ValueError(f"unknown network mode(s) {sorted(unknown_modes)}: add them to TECH")
-    df["tech"] = df["network_mode"].map(TECH)
+        raise ValueError(f"unknown network mode(s) {sorted(unknown_modes)}: this tool knows {sorted(TECH)}. "
+                         "Add the new mode to TECH in clean.py.")
+    df["tech"] = df["network_mode"].map(TECH)       # a row without a network mode keeps an empty technology
 
     # --- 3. impossible radio values -> NaN -------------------------------
     df[RADIO_COLUMNS] = df[RADIO_COLUMNS].astype("float64")  # floats can hold NaN
@@ -124,7 +128,8 @@ def clean(raw, max_first_jump_m=300):
     # network mode and the cell identity in different rows. In those rows the
     # formula fails; they are flagged so they can be counted and left out of
     # the cell and site counts.
-    site_number = df["site"].apply(lambda hex_text: int(hex_text, 16))
+    # A row without a site or a cell identity cannot pass the check.
+    site_number = df["site"].apply(lambda hex_text: int(hex_text, 16) if isinstance(hex_text, str) else np.nan)
     cells_per_site = np.where(df["tech"] == "3G", 65536, 256)
     df["identity_ok"] = df["cell"] == site_number * cells_per_site + df["sector"]
 
@@ -137,6 +142,7 @@ def _clean_gps(df, max_first_jump_m):
     The logger only writes a new position about every 100 m. Between two
     position updates, latitude, longitude and speed stay frozen.
     """
+    df[["lat", "lon"]] = df[["lat", "lon"]].astype("float64")       # also when a log has no position at all
     previous_lat = df.groupby("drive")["lat"].shift()
     previous_lon = df.groupby("drive")["lon"].shift()
     df["step_m"] = haversine_m(previous_lat, previous_lon, df["lat"], df["lon"]).fillna(0)

@@ -58,7 +58,28 @@ def test_a_new_drive_is_not_a_cell_change(make_raw):
 def test_quick_return_is_ping_pong(make_raw):
     _, events = events_for(make_raw, [A] * 10 + [B] * 2 + [A] * 10)       # 2 s on B, then back
     assert events["ping_pong"].tolist() == [True, True]
-    assert events["ping_pong_return"].tolist() == [False, True]           # one round trip
+    assert events["ping_pong_out"].tolist() == [True, False]              # the way out
+    assert events["ping_pong_return"].tolist() == [False, True]           # the way back: one round trip
+
+
+def test_next_stay_is_the_time_on_the_new_cell(make_raw):
+    _, events = events_for(make_raw, [A] * 10 + [B] * 2 + [A] * 10)
+    assert events["next_stay_s"].iloc[0] == 2                             # 2 s on B before going back
+    assert pd.isna(events["next_stay_s"].iloc[1])                         # the last change of the drive
+
+
+def test_a_chain_counts_one_round_trip_per_return(make_raw):
+    _, events = events_for(make_raw, [A] * 10 + [B] * 2 + [A] * 2 + [B] * 2 + [A] * 10)     # A-B-A-B-A
+    assert int(events["ping_pong_return"].sum()) == 3
+    assert int((events["ping_pong_out"] & ~events["ping_pong_return"]).sum()) == 1         # but one episode
+
+
+def test_a_sample_without_a_cell_is_not_a_cell_change(make_raw):
+    no_service = {"RAWCELLID": None, "NODEHEX": None, "NetworkMode": None}
+    _, events = events_for(make_raw, [A] * 5 + [no_service] * 3 + [A] * 5)
+    assert len(events) == 0                                               # A before the gap, A after it
+    _, events = events_for(make_raw, [A] * 5 + [no_service] * 3 + [B] * 5)
+    assert events["kind"].tolist() == ["LTE intra-site"]                  # A before the gap, B after it
 
 
 def test_slow_return_is_not_ping_pong(make_raw):

@@ -21,7 +21,11 @@ def find_cell_changes(df):
     The cell is identified by `cell` (the full cell identity). The short
     `sector` number is not enough: two sites can both have a sector 12.
     A change is only counted inside a drive, never between two drives.
+    A sample without a cell or a technology (no service, for example) says
+    nothing about a change: each sample is compared with the last one before
+    it that has both.
     """
+    df = df.dropna(subset=["cell", "tech"])
     before = df.groupby("drive")[["cell", "site", "tech", "rsrp"]].shift()
     has_previous = before["cell"].notna()          # False on the first sample of a drive
     changed = has_previous & ((df["cell"] != before["cell"]) | (df["tech"] != before["tech"]))
@@ -30,7 +34,7 @@ def find_cell_changes(df):
     events["from_tech"] = before.loc[changed, "tech"]
     events["to_tech"] = df.loc[changed, "tech"]
     events["from_cell"] = before.loc[changed, "cell"].astype("int64")
-    events["to_cell"] = df.loc[changed, "cell"]
+    events["to_cell"] = df.loc[changed, "cell"].astype("int64")
     events["from_site"] = before.loc[changed, "site"]
     events["to_site"] = df.loc[changed, "site"]
     events["rsrp_before"] = before.loc[changed, "rsrp"]
@@ -65,15 +69,21 @@ def _kind(event):
 def mark_ping_pong(events, max_stay_s=5):
     """Flag ping-pong: A -> B -> A where the stay on B was `max_stay_s` or less.
 
-    Two columns are added:
+    Four columns are added:
+    * `next_stay_s` - how long the phone then stayed on the new cell (empty
+      for the last change of a drive).
+    * `ping_pong_out` - this change is the way out (A -> B) of a round trip.
     * `ping_pong_return` - this change is the way back (B -> A). Counting these
       gives the number of round trips.
     * `ping_pong` - this change is part of a round trip (the way out or the
       way back).
 
-    Ping-pong wastes signalling and interrupts data twice for no gain; it
-    usually points to handover margins (hysteresis, time-to-trigger) that are
-    too small for that border.
+    A chain A -> B -> A -> B -> A counts as three round trips: every return
+    within the time limit is one.
+
+    Ping-pong wastes signalling and interrupts data twice for no gain. It
+    usually points to handover settings (hysteresis, offsets, time-to-trigger)
+    that are too loose for that border.
     """
     events = events.copy()
     next_to_cell = events.groupby("drive")["to_cell"].shift(-1)
@@ -81,6 +91,8 @@ def mark_ping_pong(events, max_stay_s=5):
     # this event went A -> B, and the next one goes back to A after a short stay on B
     goes_out = (next_to_cell == events["from_cell"]) & (next_stay <= max_stay_s)
     comes_back = goes_out.groupby(events["drive"]).shift(1, fill_value=False)
+    events["next_stay_s"] = next_stay
+    events["ping_pong_out"] = goes_out
     events["ping_pong_return"] = comes_back
     events["ping_pong"] = goes_out | comes_back
     return events

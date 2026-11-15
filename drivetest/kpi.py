@@ -71,8 +71,9 @@ def radio_summary(df):
         part = df[df["tech"] == tech]
         row = {"samples": len(part)}
         for kpi in ["rsrp", "rsrq", "snr", "cqi"]:
-            row[kpi + "_median"] = part[kpi].median()
-            row[kpi + "_p10"] = part[kpi].quantile(0.10)
+            values = part[kpi].dropna()            # a KPI that was never logged stays empty (NaN)
+            row[kpi + "_median"] = values.median() if len(values) else np.nan
+            row[kpi + "_p10"] = values.quantile(0.10) if len(values) else np.nan
         rows[tech] = row
     return pd.DataFrame(rows).T.round(1)
 
