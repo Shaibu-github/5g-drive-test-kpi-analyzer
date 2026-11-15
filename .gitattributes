@@ -1,0 +1,4 @@
+# Tell GitHub which files are generated output, so its language bar shows the code.
+docs/** linguist-generated
+figures/*.html linguist-generated
+*.ipynb linguist-documentation

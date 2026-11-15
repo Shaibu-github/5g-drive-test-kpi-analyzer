@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>{{ page.title }} - Drive-Test KPI Analyzer</title>
+<style>
+  /* One template for every page: a single drive, or all drives together.
+     report.py decides what goes in; this file decides how it looks. */
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7;          /* behind the cards */
+    --surface: #fcfcfb;       /* cards and charts */
+    --ink: #0b0b0b;           /* titles and values */
+    --ink-soft: #52514e;      /* notes and labels */
+    --muted: #898781;
+    --hairline: rgba(11, 11, 11, 0.10);
+    --grid: #e1e0d9;
+    --link: #1c5cab;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--page); color: var(--ink);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 28px 16px 56px; }
+  a { color: var(--link); }
+
+  /* --- header ------------------------------------------------------------ */
+  .eyebrow { margin: 0; font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+  h1 { margin: 2px 0 4px; font-size: 28px; line-height: 1.2; text-wrap: balance; }
+  .subtitle { margin: 0; color: var(--ink-soft); max-width: 75ch; }
+  .controls {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px;
+    margin: 18px 0 0; font-size: 14px;
+  }
+  .controls label { color: var(--ink-soft); }
+  .controls select {
+    font: inherit; color: var(--ink); max-width: 100%;
+    padding: 6px 10px; border: 1px solid var(--hairline); border-radius: 8px; background: var(--surface);
+  }
+
+  /* --- headline numbers -------------------------------------------------- */
+  .tiles {
+    display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px;
+    margin: 22px 0 8px; padding: 0; list-style: none;
+  }
+  .tile { background: var(--surface); border: 1px solid var(--hairline); border-radius: 10px; padding: 12px 14px; }
+  .tile .label { font-size: 13px; color: var(--ink-soft); }
+  .tile .value { font-size: 26px; font-weight: 600; line-height: 1.25; }
+  .tile .note { font-size: 12.5px; color: var(--ink-soft); }
+
+  /* --- sections and cards ------------------------------------------------ */
+  section { margin-top: 34px; }
+  h2 { margin: 0 0 4px; font-size: 19px; }
+  .section-note { margin: 0 0 14px; color: var(--ink-soft); max-width: 80ch; }
+  .blocks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .card {
+    margin: 0; min-width: 0; background: var(--surface);
+    border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 14px 10px;
+  }
+  .card.wide { grid-column: 1 / -1; }
+  .card h3 { margin: 0; font-size: 14.5px; }
+  .card .note { margin: 2px 0 8px; font-size: 13px; color: var(--ink-soft); max-width: 85ch; }
+  details { margin-top: 4px; }
+  summary { cursor: pointer; font-size: 13px; color: var(--ink-soft); padding: 4px 0; }
+  .scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+  th, td { padding: 6px 10px; border-bottom: 1px solid var(--grid); text-align: left; }
+  th { font-weight: 600; color: var(--ink-soft); vertical-align: bottom; }
+  th.number, td.number { text-align: right; }
+  td.number, td:first-child { white-space: nowrap; }   /* numbers and row names stay on one line, other text may wrap */
+  tr:last-child td { border-bottom: 0; }
+  iframe.map { display: block; width: 100%; height: 540px; border: 0; border-radius: 8px; }
+  footer { margin-top: 40px; font-size: 13px; color: var(--ink-soft); max-width: 90ch; }
+
+  @media (max-width: 1000px) { .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 800px) {
+    .blocks { grid-template-columns: minmax(0, 1fr); }
+    .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    h1 { font-size: 23px; }
+    iframe.map { height: 420px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">5G Drive-Test KPI Analyzer</p>
+    <h1>{{ page.title }}</h1>
+    <p class="subtitle">{{ page.subtitle }}</p>
+    {% if page.nav %}
+    <nav class="controls" aria-label="Choose a drive">
+      <label for="drive">Show</label>
+      <select id="drive" onchange="window.location.href = this.value">
+        {% for option in page.nav.options %}
+        <option value="{{ option.href }}"{% if option.selected %} selected{% endif %}>{{ option.label }}</option>
+        {% endfor %}
+      </select>
+      {% for link in page.nav.links %}<a href="{{ link.href }}">{{ link.label }}</a>{% endfor %}
+    </nav>
+    {% endif %}
+  </header>
+
+  <ul class="tiles">
+    {% for tile in page.tiles %}
+    <li class="tile">
+      <div class="label">{{ tile.label }}</div>
+      <div class="value">{{ tile.value }}</div>
+      <div class="note">{{ tile.note }}</div>
+    </li>
+    {% endfor %}
+  </ul>
+
+  {% macro show_table(table) %}
+  <div class="scroll">
+    <table>
+      <thead><tr>
+        {% for column in table.columns %}<th{% if column.number %} class="number"{% endif %}>{{ column.name }}</th>{% endfor %}
+      </tr></thead>
+      <tbody>
+        {% for row in table.rows %}
+        <tr>
+          {% for cell in row.cells %}
+          <td{% if table.columns[loop.index0].number %} class="number"{% endif %}>
+            {%- if loop.first and row.href %}<a href="{{ row.href }}">{{ cell }}</a>{% else %}{{ cell }}{% endif -%}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endmacro %}
+
+  {% for section in page.sections %}
+  <section>
+    <h2>{{ section.title }}</h2>
+    <p class="section-note">{{ section.note }}</p>
+    <div class="blocks">
+      {% for block in section.blocks %}
+      <figure class="card{% if block.wide %} wide{% endif %}">
+        <h3>{{ block.title }}</h3>
+        {% if block.note %}<p class="note">{{ block.note }}</p>{% endif %}
+        {% if block.kind == "chart" %}
+          {{ block.html | safe }}
+          {% if block.table %}
+          <details>
+            <summary>Show the numbers behind this chart</summary>
+            {{ show_table(block.table) }}
+          </details>
+          {% endif %}
+        {% elif block.kind == "table" %}
+          {{ show_table(block.table) }}
+        {% elif block.kind == "map" %}
+          <iframe class="map" title="{{ block.title }}" loading="lazy" srcdoc="{{ block.html }}"></iframe>
+        {% endif %}
+      </figure>
+      {% endfor %}
+    </div>
+  </section>
+  {% endfor %}
+
+  <footer>
+    {% for line in page.footer %}<p>{{ line | safe }}</p>{% endfor %}
+  </footer>
+
+</div>
+</body>
+</html>

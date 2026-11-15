@@ -18,3 +18,7 @@ __pycache__/
 
 # macOS
 .DS_Store
+
+# Reports written by the notebook or by "python -m drivetest report"
+*_report.html
+drive_report.html
