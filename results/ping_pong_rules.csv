@@ -1,0 +1,14 @@
+rule,setting,round_trips,round_trips_caught,round_trips_caught_pct,normal_changes,normal_changes_affected,normal_changes_affected_pct,advantage_points
+Margin,gain below 0 dB,148,59,39.9,443,133,30.0,9.8
+Margin,gain below 1 dB,148,73,49.3,443,167,37.7,11.6
+Margin,gain below 2 dB,148,86,58.1,443,212,47.9,10.3
+Margin,gain below 3 dB,148,101,68.2,443,245,55.3,12.9
+Margin,gain below 4 dB,148,106,71.6,443,289,65.2,6.4
+Margin,gain below 5 dB,148,117,79.1,443,324,73.1,5.9
+Margin,gain below 6 dB,148,128,86.5,443,358,80.8,5.7
+Margin,gain below 8 dB,148,139,93.9,443,406,91.6,2.3
+Border,1+ round trips in other drives,148,112,75.7,443,176,39.7,35.9
+Border,2+ round trips in other drives,148,87,58.8,443,144,32.5,26.3
+Border,3+ round trips in other drives,148,80,54.1,443,122,27.5,26.5
+Border,5+ round trips in other drives,148,67,45.3,443,71,16.0,29.2
+Road only,crossed in another drive,148,126,85.1,443,319,72.0,13.1

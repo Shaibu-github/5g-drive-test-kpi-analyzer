@@ -1,0 +1,11 @@
+round_trips_used,rule,advantage_points,low,high
+All round trips,Margin rule (gain below 3 dB),12.9,3.9,23.4
+All round trips,Border rule (a round trip in another drive),35.9,20.0,38.6
+All round trips,Road only (crossed in another drive),13.1,3.1,21.9
+All round trips,Border rule minus margin rule,23.0,0.5,30.5
+All round trips,Border rule minus road only,22.8,8.2,26.8
+Without round trips of 2 s or less,Margin rule (gain below 3 dB),9.0,-1.7,23.3
+Without round trips of 2 s or less,Border rule (a round trip in another drive),17.5,-5.1,26.2
+Without round trips of 2 s or less,Road only (crossed in another drive),-5.3,-13.1,12.8
+Without round trips of 2 s or less,Border rule minus margin rule,8.5,-12.0,14.7
+Without round trips of 2 s or less,Border rule minus road only,22.8,-7.3,30.9

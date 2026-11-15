@@ -24,6 +24,7 @@
     "per_minute": 1.54,
     "per_km": 4.35,
     "ping_pong_round_trips": 148,
+    "ping_pong_episodes": 114,
     "changes_in_a_round_trip": 262,
     "changes_in_a_round_trip_pct": 35.7,
     "changes_next_to_identity_mismatch": 8,
@@ -31,6 +32,96 @@
     "isolated_used_for_dip": 201,
     "median_drop_pct": 30.8,
     "control_median_drop_pct": -4.5
+  },
+  "tuning": {
+    "lte_5g_changes": 705,
+    "round_trips": 148,
+    "round_trips_of_2_s_or_less": 79,
+    "round_trips_left_without_them": 56,
+    "normal_changes": 443,
+    "borders": 182,
+    "borders_with_round_trip": 48,
+    "top_8_borders_pct_of_round_trips": 50.7,
+    "top_8_borders_pct_of_changes": 29.6,
+    "margin_rule_3_db": {
+      "round_trips_caught": 101,
+      "normal_changes_affected": 245,
+      "round_trips_caught_pct": 68.2,
+      "normal_changes_affected_pct": 55.3,
+      "advantage_points": 12.9
+    },
+    "border_rule": {
+      "round_trips_caught": 112,
+      "normal_changes_affected": 176,
+      "round_trips_caught_pct": 75.7,
+      "normal_changes_affected_pct": 39.7,
+      "advantage_points": 35.9
+    },
+    "road_only": {
+      "round_trips_caught": 126,
+      "normal_changes_affected": 319,
+      "round_trips_caught_pct": 85.1,
+      "normal_changes_affected_pct": 72.0,
+      "advantage_points": 13.1
+    },
+    "drives_scored": 12,
+    "drives_with_border_rule_ahead": 9,
+    "main": {
+      "All round trips": {
+        "Margin rule (gain below 3 dB)": {
+          "advantage_points": 12.9,
+          "low": 3.9,
+          "high": 23.4
+        },
+        "Border rule (a round trip in another drive)": {
+          "advantage_points": 35.9,
+          "low": 20.0,
+          "high": 38.6
+        },
+        "Road only (crossed in another drive)": {
+          "advantage_points": 13.1,
+          "low": 3.1,
+          "high": 21.9
+        },
+        "Border rule minus margin rule": {
+          "advantage_points": 23.0,
+          "low": 0.5,
+          "high": 30.5
+        },
+        "Border rule minus road only": {
+          "advantage_points": 22.8,
+          "low": 8.2,
+          "high": 26.8
+        }
+      },
+      "Without round trips of 2 s or less": {
+        "Margin rule (gain below 3 dB)": {
+          "advantage_points": 9.0,
+          "low": -1.7,
+          "high": 23.3
+        },
+        "Border rule (a round trip in another drive)": {
+          "advantage_points": 17.5,
+          "low": -5.1,
+          "high": 26.2
+        },
+        "Road only (crossed in another drive)": {
+          "advantage_points": -5.3,
+          "low": -13.1,
+          "high": 12.8
+        },
+        "Border rule minus margin rule": {
+          "advantage_points": 8.5,
+          "low": -12.0,
+          "high": 14.7
+        },
+        "Border rule minus road only": {
+          "advantage_points": 22.8,
+          "low": -7.3,
+          "high": 30.9
+        }
+      }
+    }
   },
   "maps": {
     "road_bins": 432,
